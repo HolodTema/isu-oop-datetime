@@ -83,8 +83,8 @@ size_t DateTime::getAmountDaysInMonth(int month) const {
 }
  
 
-//amount days since 01.01.1900
-size_t DateTime::getAbsoluteDays() const {
+//amount seconds since 01.01.1900
+size_t DateTime::getTimeSeconds() const {
     int deltaYears = year_ - 1900;
     int result = deltaYears * 365;
     int amountLeapYears = (deltaYears / 4) - (deltaYears / 100) + (deltaYears / 400);
@@ -94,6 +94,10 @@ size_t DateTime::getAbsoluteDays() const {
         result += getAmountDaysInMonth(i);
     }
     result += day_;
+    result = (result - 1) * 86400;
+    result += hour_ * 3600;
+    result += minute_ * 60;
+    result += second_;
     return result;
 }
     
@@ -109,10 +113,44 @@ size_t DateTime::getDay() const {
     return day_;
 }
 
+size_t DateTime::getHour() const {
+    return hour_;
+}
+
+size_t DateTime::getMinute() const {
+    return minute_;
+}
+
+size_t DateTime::getSecond() const {
+    return second_;
+}
+
+
+std::istream& operator>>(std::istream& is, DateTime& dt) {
+    std::istream::sentry s(is);
+    if (!is) {
+        return is;
+    }
+    
+    std::string line;
+    std::getline(is, line);
+    dt = DateTime(line);
+
+    return is;
+}
+
 std::ostream& operator<<(std::ostream& os, const DateTime& dt) {
+    std::ostream::sentry s(os);
+    if (!s) {
+        return os;
+    }
+
     os << std::setfill('0') << std::setw(4) << dt.getYear();
     os << "-" << std::setfill('0') << std::setw(2) << dt.getMonth();
     os << "-" << std::setfill('0') << std::setw(2) << dt.getDay();
+    os << "T" << std::setfill('0') << std::setw(2) << dt.getHour();
+    os << ":" << std::setfill('0') << std::setw(2) << dt.getMinute();
+    os << ":" << std::setfill('0') << std::setw(2) << dt.getSecond();
     return os;
 }
 
