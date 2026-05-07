@@ -21,9 +21,9 @@ size_t partition(std::vector<T>& vec, int low, int high) {
 }
 
 template<typename T>
-void quickSort(std::vector<T>& vec, size_t low, size_t high) {
+void quickSort(std::vector<T>& vec, int low, int high) {
 	if (low < high) {
-		size_t pivotIndex = partition(vec, low, high);
+		int pivotIndex = partition(vec, low, high);
 		quickSort(vec, low, pivotIndex - 1);
 		quickSort(vec, pivotIndex + 1, high);
 	}
