@@ -139,6 +139,8 @@ public:
 
     size_t getSecond() const;
 
+    friend std::istream& operator>>(std::istream& is, DateTime& dateTime);
+
 private:
     size_t year_;
     size_t month_;

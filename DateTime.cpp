@@ -140,16 +140,95 @@ size_t DateTime::getSecond() const {
 }
 
 
-std::istream& operator>>(std::istream& is, DateTime& dt) {
+std::istream& operator>>(std::istream& is, DateTime& dateTime) {
     std::istream::sentry s(is);
-    if (!is) {
+    if (!s) {
         return is;
     }
     
     std::string line;
     std::getline(is, line);
-    dt = DateTime(line);
 
+    size_t year;
+    size_t month;
+    size_t day;
+    size_t hour;
+    size_t minute;
+    size_t second;
+
+    if (line.size() == 8 && line[2] == ':' && line[5] == ':') {
+        try {
+            hour = std::stoi(line.substr(0, 2));
+            minute = std::stoi(line.substr(3, 2));
+            second = std::stoi(line.substr(6, 2));
+        }
+        catch (std::invalid_argument& e) {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
+        dateTime.year_ = dateTime.START_YEAR;
+        dateTime.month_ = dateTime.START_MONTH;
+        dateTime.day_ = dateTime.START_DAY;
+        dateTime.hour_ = hour;
+        dateTime.minute_ = minute;
+        dateTime.second_ = second;
+        if (!dateTime.isValid()) {
+            is.setstate(std::ios_base::failbit);
+        }
+        return is;
+    }
+    if (line.size() == 10 && line[4] == '-' && line[7] == '-') {
+        try {
+            year = std::stoi(line.substr(0, 4));
+            month = std::stoi(line.substr(5, 2));
+            day = std::stoi(line.substr(8, 2));
+        }
+        catch (std::invalid_argument& e) {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
+        dateTime.year_ = year;
+        dateTime.month_ = month;
+        dateTime.day_ = day;
+        dateTime.hour_ = dateTime.START_HOUR;
+        dateTime.minute_ = dateTime.START_MINUTE;
+        dateTime.second_ = dateTime.START_SECOND;
+        if (!dateTime.isValid()) {
+            is.setstate(std::ios_base::failbit);
+        }
+        return is;
+    }
+    if (line.size() == 19 &&
+        line[4] == '-' &&
+        line[7] == '-' &&
+        line[10] == 'T' &&
+        line[13] == ':' &&
+        line[16] == ':')
+    {
+        try {
+            year = std::stoi(line.substr(0, 4));
+            month = std::stoi(line.substr(5, 2));
+            day = std::stoi(line.substr(8, 2));
+            hour = std::stoi(line.substr(11, 2));
+            minute = std::stoi(line.substr(14, 2));
+            second = std::stoi(line.substr(17, 2));
+        }
+        catch (std::invalid_argument& e) {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
+        dateTime.year_ = year;
+        dateTime.month_ = month;
+        dateTime.day_ = day;
+        dateTime.hour_ = hour;
+        dateTime.minute_ = minute;
+        dateTime.second_ = second;
+        if (!dateTime.isValid()) {
+            is.setstate(std::ios_base::failbit);
+        }
+        return is;
+    }
+    is.setstate(std::ios_base::failbit);
     return is;
 }
 
