@@ -3,16 +3,17 @@
 
 #include <stdexcept>
 #include <iosfwd>
+#include <string>
 #include "exceptions.hpp"
 
 class DateTime {
 public:
-    const size_t START_YEAR = 1900;
-    const size_t START_MONTH = 1;
-    const size_t START_DAY = 1;
-    const size_t START_HOUR = 0;
-    const size_t START_MINUTE = 0;
-    const size_t START_SECOND = 0;
+    static constexpr size_t START_YEAR = 1900;
+    static constexpr size_t START_MONTH = 1;
+    static constexpr size_t START_DAY = 1;
+    static constexpr size_t START_HOUR = 0;
+    static constexpr size_t START_MINUTE = 0;
+    static constexpr size_t START_SECOND = 0;
 
     DateTime(
         size_t year,
