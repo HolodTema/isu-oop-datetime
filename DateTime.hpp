@@ -1,112 +1,107 @@
 #ifndef DATE_TIME_HPP
 #define DATE_TIME_HPP
 
-#include <string>
 #include <stdexcept>
 #include <iosfwd>
+#include "exceptions.hpp"
 
 class DateTime {
-private:
-    size_t year_;
-    size_t month_;
-    size_t day_;
-    size_t hour_;
-    size_t minute_;
-    size_t second_;
-    
 public:
+    const size_t START_YEAR = 1900;
+    const size_t START_MONTH = 1;
+    const size_t START_DAY = 1;
+    const size_t START_HOUR = 0;
+    const size_t START_MINUTE = 0;
+    const size_t START_SECOND = 0;
 
-    DateTime(const std::string& date) {
-        if (date.size == 10 || date.size == 19) {
-            //format yyyy-mm-ddThh:mm:ss
-            //or format yyyy-mm-dd
-            year_ = std::stoi(date.substr(0, 4));
-            month_ = std::stoi(date.substr(5, 2));
-            day_ = std::stoi(date.substr(8, 2));
-            
-            if (year_ < 1900) {
-                throw std::runtime_error("Year cannot be < 0");
-            }
-            if (month_ == 0 || month_ > 12) {
-                throw std::runtime_error("Month must be in interval [1, 12]");
-            }
-            if (day_ == 0 || day_ > 31) {
-                throw std::runtime_error("Day must be in interval [1, 31]");
-            }
+    DateTime(
+        size_t year,
+        size_t month,
+        size_t day,
+        size_t hour,
+        size_t minute,
+        size_t second
+    ):
+        year_(year),
+        month_(month),
+        day_(day),
+        hour_(hour),
+        minute_(minute),
+        second_(second)
+    {
+        if (!isValid()) {
+            throw InvalidDateException();
+        }
+    }
 
-            int amountDaysInCurrMonth = getAmountDaysInMonth(month_);
-            if (day_ > amountDaysInCurrMonth) {
-                throw std::runtime_error("Invalid day for this month");
-            }
-            if (date.size == 19) {
-                //format yyyy-mm-ddThh:mm:ss
-                hour_ = std::stoi(date.substr(11, 2));
-                minute_ = std::stoi(date.substr(14, 2));
-                second_ = std::stoi(date.substr(17, 2));
-                
-                if (hour_ >= 24) {
-                    throw std::runtime_error("Hour must be in interval [0, 23]");
-                }
-                if (minute_ >= 60) {
-                    throw std::runtime_error("Minute must be in interval [0, 59]");
-                }
-                if (second_ >= 60) {
-                    throw std::runtime_error("Second must be in interval [0, 59]");
-                }
-            }
-            else {
-                hour_ = 0;
-                minute_ = 0;
-                second_ = 0;
-            }
+    DateTime(
+        size_t year,
+        size_t month,
+        size_t day
+    ):
+        year_(year),
+        month_(month),
+        day_(day),
+        hour_(START_HOUR),
+        minute_(START_MINUTE),
+        second_(START_SECOND)
+    {
+        if (!isValid()) {
+            throw InvalidDateException();
         }
-        else if (date.size == 8) {
-            hour_ = std::stoi(date.substr(0, 2));
-            minute_ = std::stoi(date.substr(3, 2));
-            second_ = std::stoi(date.substr(6, 2));
-            
-            if (hour_ >= 24) {
-                throw std::runtime_error("Hour must be in interval [0, 23]");
-            }
-            if (minute_ >= 60) {
-                throw std::runtime_error("Minute must be in interval [0, 59]");
-            }
-            if (second_ >= 60) {
-                throw std::runtime_error("Second must be in interval [0, 59]");
-            }
-        }
-        else {
-            throw std::runtime_error("Invalid date format");
+    }
+
+    DateTime():
+        year_(START_YEAR),
+        month_(START_MONTH),
+        day_(START_DAY),
+        hour_(START_HOUR),
+        minute_(START_MINUTE),
+        second_(START_SECOND)
+    {
+        if (!isValid()) {
+            throw InvalidDateException();
         }
     }
     
     //days since 1900-01-01
-    DateTime(size_t absDays) {
-        size_t counterYear = 1900;
-        size_t days = absDays;
-        while (absDays - days > 365) {
-            if (isLeap(counterYear)) {
-                days -= 366;
+    DateTime(size_t secondsSinceStart) {
+        year_ = START_YEAR;
+
+        while (true) {
+            size_t secondsInYear = isLeapYear(year_) ? (366 * 86400) : (365 * 86400);
+            if (secondsSinceStart < secondsInYear) {
+                break;
             }
-            else {
-                days -= 365;
+            secondsSinceStart -= secondsInYear;
+            year_++;
+        }
+
+        month_ = START_MONTH;
+        for (size_t m = START_MONTH; m <= 12; m++) {
+            size_t secondsInMonth = getAmountDaysInMonth(m) * 86400;
+            if (secondsSinceStart < secondsInMonth) {
+                break;
             }
-            counterYear++;
+            secondsSinceStart -= secondsInMonth;
+            month_++;
         }
-        year_ = counterYear;
-        
-        size_t counterMonth = 1;
-        while (days > getAmountDaysInMonth(counterMonth)) {
-            days -= getAmountDaysInMonth(counterMonth);
-            counterMonth++;
-        }
-        month_ = counterMonth;
-        day_ = days;
+
+        day_ = START_DAY + secondsSinceStart / 86400;
+        secondsSinceStart %= 86400;
+
+        hour_ = secondsSinceStart / 3600;
+        secondsSinceStart %= 3600;
+
+        minute_ = secondsSinceStart / 60;
+        secondsSinceStart %= 60;
+
+        second_ = secondsSinceStart;
     }
 
-    int operator-(const DateTime& other);
+    int operator-(const DateTime& other) const;
     
-    DateTime operator+(size_t days);
+    DateTime operator+(size_t days) const;
 
     bool operator==(const DateTime& other) const;
     
@@ -118,15 +113,19 @@ public:
 
     bool operator<=(const DateTime& other) const;
 
-    bool isLeap() const;
+    bool isLeapYear() const;
 
-    bool isLeap(int year) const;
+    bool isLeapYear(size_t year) const;
 
     size_t getDayOfWeek() const;
 
-    size_t getAmountDaysInMonth(int month) const;
+    size_t getAmountDaysInMonth(size_t month) const;
 
-    size_t getTimeSeconds() const;
+    size_t getSecondsSinceStart() const;
+
+    size_t getSecondsSinceStartOfTheDay() const;
+
+    bool isValid() const;
 
     size_t getYear() const;
 
@@ -139,6 +138,14 @@ public:
     size_t getMinute() const;
 
     size_t getSecond() const;
+
+private:
+    size_t year_;
+    size_t month_;
+    size_t day_;
+    size_t hour_;
+    size_t minute_;
+    size_t second_;
 };
 
 std::istream& operator>>(std::istream& is, DateTime& dt);

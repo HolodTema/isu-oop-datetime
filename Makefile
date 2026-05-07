@@ -3,7 +3,7 @@ CXX = g++
 
 
 # compiler flags
-# CXXFLAGS = -Wall -Wextra -std=c++11 -O2
+CXXFLAGS = -Wall -Wextra -std=c++11 -O2
 
 
 # target file - the file of our program

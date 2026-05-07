@@ -2,35 +2,29 @@
 #include <iostream>
 #include <iomanip>
 
-int DateTime::operator-(const DateTime& other) {
-    return getAbsoluteDays() - other.getAbsoluteDays();
+int DateTime::operator-(const DateTime& other) const{
+    int deltaSeconds = getSecondsSinceStart() - other.getSecondsSinceStart();
+    deltaSeconds /= 86400;
+    return deltaSeconds;
 }
 
-DateTime DateTime::operator+(size_t days) {
-    size_t absDays = getAbsoluteDays();
-    return DateTime(absDays + days);
+DateTime DateTime::operator+(size_t days) const {
+    size_t secondsToAdd = days * 86400;
+    size_t currentSeconds = getSecondsSinceStart();
+    return DateTime(currentSeconds + secondsToAdd);
 }
 
 bool DateTime::operator==(const DateTime& other) const {
-    return year_ == other.year_ && month_ == other.month_ && day_ == other.day_;
+    return year_ == other.year_ &&
+        month_ == other.month_ &&
+        day_ == other.day_ &&
+        hour_ == other.hour_ &&
+        minute_ == other.minute_ &&
+        second_ == other.second_;
 }
 
 bool DateTime::operator<(const DateTime& other) const {
-    return getAbsoluteDays() < other.getAbsoluteDays();
-    // if (year_ < other.year_) {
-    //     return true;
-    // }
-    // if (year_ > other.year_) {
-    //     return false;
-    // }
-
-    // if (month_ < other.month_) {
-    //     return true;
-    // }
-    // if (month_ > other.month_) {
-    //     return false;
-    // }
-    // return day_ < other.day_;
+    return getSecondsSinceStart() < other.getSecondsSinceStart();
 }
 
 bool DateTime::operator<=(const DateTime& other) const {
@@ -45,60 +39,80 @@ bool DateTime::operator>=(const DateTime& other) const {
     return !((*this) < other);
 }
 
-bool DateTime::isLeap() const {
+bool DateTime::isLeapYear() const {
     if (year_ % 400 == 0) {
         return true;
     }
     return (year_ % 4 == 0) && (year_ % 100 != 0);
 }
 
-
-bool DateTime::isLeap(int year) const {
+bool DateTime::isLeapYear(size_t year) const {
     if (year % 400 == 0) {
         return true;
     }
     return (year % 4 == 0) && (year % 100 != 0);
-
 }
 
-
-//returns 1 if today is Monday
-//returns 7 if today is Sunday
 size_t DateTime::getDayOfWeek() const {
-    //actually in Gregorian calendar 01.01.1900 is Monday
-    size_t absDays = getAbsoluteDays();
-    // make +1 because of we want Monday = 1, not 0
-    return absDays % 7 + 1;
-}
+    // используем формулу Конгресса для нахождения дня недели из даты
+    // вернет 1 если понедельник
+    // вернет 7 если воскресенье
+    // и тд
 
-
-size_t DateTime::getAmountDaysInMonth(int month) const {
-    size_t nonLeapDays[12] {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    size_t leapDays[12] {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-    if (isLeap()) {
-        return leapDays[month-1];
+    size_t month = month_;
+    size_t year = year_;
+    if (month_ < 3) {
+        month += 12;
+        year--;
     }
-    return nonLeapDays[month-1];
+
+    size_t a = year / 100;
+    size_t b = year / 400;
+    int c = 2 - a + b;
+    size_t e = static_cast<size_t>(365.25 * (year + 4716));
+    size_t f = static_cast<size_t>(30.6001 * (month + 1));
+    size_t result = (c + day_ + e + f) % 7;
+
+    // сейчас понедельник = 5, а воскресенье = 4 - исправим это
+    result = (result + 3) % 7;
+    return (result == 0) ? 7 : result;
 }
- 
+
+size_t DateTime::getAmountDaysInMonth(size_t month) const {
+    size_t days[12] {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (month == 2 && isLeapYear()) {
+        return 29;
+    }
+    return days[month - 1];
+}
 
 //amount seconds since 01.01.1900
-size_t DateTime::getTimeSeconds() const {
-    int deltaYears = year_ - 1900;
-    int result = deltaYears * 365;
-    int amountLeapYears = (deltaYears / 4) - (deltaYears / 100) + (deltaYears / 400);
-    result += amountLeapYears;
-    
-    for (size_t i = 1; i < month_; ++i) {
-        result += getAmountDaysInMonth(i);
+size_t DateTime::getSecondsSinceStart() const {
+    size_t result = 0;
+    for (size_t y = START_YEAR; y < year_; y++) {
+        result += isLeapYear(y) ? (366 * 86400) : (365 * 86400);
     }
-    result += day_;
-    result = (result - 1) * 86400;
-    result += hour_ * 3600;
-    result += minute_ * 60;
-    result += second_;
+    for (size_t m = START_MONTH; m < month_; m++) {
+        result += getAmountDaysInMonth(m) * 86400;
+    }
+    result += (day_ - 1) * 86400;
+    result += getSecondsSinceStartOfTheDay();
     return result;
+}
+
+size_t DateTime::getSecondsSinceStartOfTheDay() const {
+    return second_ + minute_ * 60 + hour_ * 3600;
+}
+
+bool DateTime::isValid() const {
+    return year_ >= START_YEAR &&
+        month_ >= START_MONTH &&
+        month_ <= 12 &&
+        day_ >= START_DAY &&
+        day_ <= getAmountDaysInMonth(month_) &&
+        hour_ < 24 &&
+        minute_ < 60 &&
+        second_ < 60;
 }
     
 size_t DateTime::getYear() const {
