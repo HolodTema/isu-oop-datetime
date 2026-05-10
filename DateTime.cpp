@@ -53,8 +53,8 @@ bool DateTime::isLeapYear(size_t year) const {
     return (year % 4 == 0) && (year % 100 != 0);
 }
 
-size_t DateTime::getDayOfWeek() const {
-    // используем формулу Конгресса для нахождения дня недели из даты
+size_t DateTime::getDayOfWeekZeller() const {
+    // используем формулу Зеллера для нахождения дня недели из даты
     // вернет 1 если понедельник
     // вернет 7 если воскресенье
     // и тд
@@ -76,6 +76,13 @@ size_t DateTime::getDayOfWeek() const {
     // сейчас понедельник = 5, а воскресенье = 4 - исправим это
     result = (result + 3) % 7;
     return (result == 0) ? 7 : result;
+}
+
+size_t DateTime::getDayOfWeek() const {
+    // 01.01.1900 - понедельник
+    size_t dayOfWeek = (getSecondsSinceStart() / 86400) % 7;
+    dayOfWeek++;
+    return dayOfWeek;
 }
 
 size_t DateTime::getAmountDaysInMonth(size_t month) const {

@@ -118,6 +118,8 @@ public:
 
     bool isLeapYear(size_t year) const;
 
+    size_t getDayOfWeekZeller() const;
+
     size_t getDayOfWeek() const;
 
     size_t getAmountDaysInMonth(size_t month) const;

@@ -70,6 +70,20 @@ void testDateTime() {
     std::cout << "a == b: " << (dateA == dateB ? "true" : "false") << "\n";
     std::cout << "a <= b: " << (dateA <= dateB ? "true" : "false") << "\n";
     std::cout << "b >= a: " << (dateB >= dateA ? "true" : "false") << "\n";
+
+    std::cout << "Test getDayOfWeek():\n";
+    std::cout << "01.01.1900 day of week is " << DateTime(1900, 1, 1).getDayOfWeek() << "\n";
+    std::cout << "09.05.2026 day of week is " << DateTime(2026, 5, 9).getDayOfWeek() << "\n";
+    std::cout << "13.06.2006 day of week is " << DateTime(2006, 6, 13).getDayOfWeek() << "\n";
+    std::cout << "01.01.2020 day of week is " << DateTime(2020, 1, 1).getDayOfWeek() << "\n";
+    std::cout << "29.02.2024 day of week is " << DateTime(2024, 2, 29).getDayOfWeek() << "\n\n";
+
+    std::cout << "Test getDayOfWeekZeller():\n";
+    std::cout << "01.01.1900 day of week is " << DateTime(1900, 1, 1).getDayOfWeekZeller() << "\n";
+    std::cout << "09.05.2026 day of week is " << DateTime(2026, 5, 9).getDayOfWeekZeller() << "\n";
+    std::cout << "13.06.2006 day of week is " << DateTime(2006, 6, 13).getDayOfWeekZeller() << "\n";
+    std::cout << "01.01.2020 day of week is " << DateTime(2020, 1, 1).getDayOfWeekZeller() << "\n";
+    std::cout << "29.02.2024 day of week is " << DateTime(2024, 2, 29).getDayOfWeekZeller() << "\n\n";
 }
 
 void sortDatesFromFile() {
